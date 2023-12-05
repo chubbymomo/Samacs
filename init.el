@@ -24,6 +24,7 @@
 
 ;;(add-hook 'prog-mode-hook 'eglot-ensure)
 (add-hook 'prog-mode-hook 'paredit-mode)
+(add-hook 'org-mode-hook 'visual-line-mode)
 
 (use-package modus-themes
   :config
