@@ -27,7 +27,6 @@
 (set-face-attribute 'default nil :height 120)
 
 ;;(add-hook 'prog-mode-hook 'eglot-ensure)
-;;(add-hook 'prog-mode-hook 'paredit-mode)
 (add-hook 'org-mode-hook 'visual-line-mode)
 
 (use-package modus-themes
@@ -371,10 +370,16 @@
 
 (use-package nov)
 
-(use-package paredit)
+(use-package paredit
+  :config
+  (add-hook 'prog-mode-hook 'paredit-mode))
 
+;; Automatically start "book" modes when needed
 (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
 (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+
+;; Magit
+(use-package magit)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
