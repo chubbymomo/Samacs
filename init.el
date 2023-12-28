@@ -1,20 +1,24 @@
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name
+        "straight/repos/straight.el/bootstrap.el"
+        (or (bound-and-true-p straight-base-dir)
+            user-emacs-directory)))
+      (bootstrap-version 7))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
-;; Install use-package support
-(elpaca elpaca-use-package
-  ;; Enable :elpaca use-package keyword.
-  (elpaca-use-package-mode)
-  ;; Assume :elpaca t unless otherwise specified.
-  (setq elpaca-use-package-by-default t))
+(setq package-enable-at-startup nil)
 
-;; Block until current queue processed.
-(elpaca-wait)
+(straight-use-package 'use-package)
 
-(unless (package-installed-p 'use-package)
-  (package-install 'use-package))
-
-(eval-when-compile
-  (require 'use-package))
-
+(setq straight-use-package-by-default t)
 
 ;; Minimal UI
 (menu-bar-mode -1)
@@ -23,7 +27,7 @@
 (set-face-attribute 'default nil :height 120)
 
 ;;(add-hook 'prog-mode-hook 'eglot-ensure)
-(add-hook 'prog-mode-hook 'paredit-mode)
+;;(add-hook 'prog-mode-hook 'paredit-mode)
 (add-hook 'org-mode-hook 'visual-line-mode)
 
 (use-package modus-themes
@@ -166,7 +170,6 @@
 (setq completion-cycle-threshold 3)
 (setq tab-always-indent 'complete)
 
-
 (use-package general
   :ensure t)
 
@@ -211,13 +214,11 @@
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
-  :elpaca nil
   :init
   (savehist-mode))
 
 ;; A few more useful configurations...
 (use-package emacs
-  :elpaca nil
   :init
   ;; Add prompt indicator to `completing-read-multiple'.
   ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
@@ -348,6 +349,8 @@
 			 "~/Documents/Org/ANS2005.org"
 			 "~/Documents/Org/COP3502.org"
 			 "~/Documents/Org/System Administrator.org"
+			 "~/Documents/Org/Christianity.org"
+			 "~/Documents/Org/Work.org"
 			 "~/Documents/Org/IDS2935.org"))
 
 (setq org-capture-templates '(("t" "Todo [inbox]" entry
@@ -371,6 +374,7 @@
 (use-package paredit)
 
 (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
+(add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -378,7 +382,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("88cb0f9c0c11dbb4c26a628d35eb9239d1cf580cfd28e332e654e7f58b4e721b" default)))
+   '("88267200889975d801f6c667128301af0bc183f3450c4b86138bfb23e8a78fb1" "88cb0f9c0c11dbb4c26a628d35eb9239d1cf580cfd28e332e654e7f58b4e721b" default)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
