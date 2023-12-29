@@ -29,10 +29,12 @@
 ;;(add-hook 'prog-mode-hook 'eglot-ensure)
 (add-hook 'org-mode-hook 'visual-line-mode)
 
-(use-package modus-themes
-  :config
-  (load-theme 'modus-vivendi-tinted))
-
+(defun convert-md-to-org ()
+  (interactive)
+  (let ((input (buffer-file-name))
+        (output (concat (file-name-sans-extension (buffer-file-name)) ".org")))
+    (shell-command (format "pandoc -f markdown -t org -o %s %s" output input))
+    (find-file output)))
 
 (defun meow-setup ()
   (meow-motion-overwrite-define-key
@@ -172,6 +174,13 @@
 (use-package general
   :ensure t)
 
+(defconst leader "C-c")
+
+(general-create-definer leader-def
+  :prefix leader)
+
+(leader-def
+  "b" 'bluetooth-list-devices)
 ;; Enable vertico
 (use-package vertico
   :init
@@ -265,7 +274,12 @@
 
 (use-package dirvish
   :config
-  (dirvish-override-dired-mode))
+  (dirvish-override-dired-mode)
+  :general
+  (:keymaps 'dired-mode-map
+	    "h" 'dired-up-directory
+	    "l" 'dired-find-file)
+  )
 
 (defun disable-meow-mode ()
   (meow-global-mode -1))
@@ -381,6 +395,14 @@
 ;; Magit
 (use-package magit)
 
+;; Dashboard
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook))
+
+(use-package bluetooth)
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -395,3 +417,7 @@
  ;; If there is more than one, they won't work right.
  )
 
+
+(use-package modus-themes
+  :config
+  (load-theme 'modus-vivendi-tinted))
