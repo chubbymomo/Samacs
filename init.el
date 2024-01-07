@@ -1,3 +1,5 @@
+(setq native-comp-async-report-warnings-errors -1)
+
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name
@@ -20,21 +22,25 @@
 
 (setq straight-use-package-by-default t)
 
-;; Minimal UI
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (set-face-attribute 'default nil :height 120)
 
-;;(add-hook 'prog-mode-hook 'eglot-ensure)
-(add-hook 'org-mode-hook 'visual-line-mode)
+(use-package doom-modeline
+  :config
+  (doom-modeline-mode))
 
-(defun convert-md-to-org ()
-  (interactive)
-  (let ((input (buffer-file-name))
-        (output (concat (file-name-sans-extension (buffer-file-name)) ".org")))
-    (shell-command (format "pandoc -f markdown -t org -o %s %s" output input))
-    (find-file output)))
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook))
+
+(setq custom-safe-themes t)
+
+(use-package modus-themes
+  :config
+  (load-theme 'modus-vivendi-tinted))
 
 (defun meow-setup ()
   (meow-motion-overwrite-define-key
@@ -130,16 +136,114 @@
   (meow-setup)
   (enable-meow-mode))
 
-
-(use-package doom-modeline
+(use-package which-key
   :config
-  (doom-modeline-mode))
+  (which-key-mode))
+
+(use-package general
+  :ensure t)
+
+(defconst leader "C-c")
+
+(general-create-definer leader-def
+  :prefix leader)
+
+(leader-def
+  "b" 'bluetooth-list-devices)
+
+(setq org-startup-folded 'fold)
+(straight-use-package 'org)
+(use-package org
+    :config
+    (general-define-key
+    "C-c d c" 'org-capture
+    "C-c d a" 'org-agenda))
+
+(use-package org-roam
+  :ensure t
+  :custom
+  (org-roam-directory (file-truename "/home/swilley/Documents/Roam"))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n g" . org-roam-graph)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n c" . org-roam-capture)
+         ;; Dailies
+         ("C-c n j" . org-roam-dailies-capture-today))
+  :config
+  ;; If you're using a vertical completion framework, you might want a more informative completion interface
+  (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+  (org-roam-db-autosync-mode)
+  ;; If using org-roam-protocol
+  (require 'org-roam-protocol))
+
+(use-package org-modern
+  :config
+  (setq
+   ;; Edit settings
+   org-auto-align-tags nil
+   org-tags-column 0
+   org-catch-invisible-edits 'show-and-error
+   org-special-ctrl-a/e t
+   org-insert-heading-respect-content t
+
+   ;; Org styling, hide markup etc.
+   org-hide-emphasis-markers t
+   org-pretty-entities t
+   org-ellipsis "…"
+
+   ;; Agenda styling
+   org-agenda-tags-column 0
+   org-agenda-block-separator ?─
+   org-agenda-time-grid
+   '((daily today require-timed)
+     (800 1000 1200 1400 1600 1800 2000)
+     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+   org-agenda-current-time-string
+   "⭠ now ─────────────────────────────────────────────────")
+  (global-org-modern-mode))
+
+(setq org-todo-keywords
+      '((sequence "TODO" "NEXT" "LATER" "SCHEDULED" "PROJECT" "WAITING" "|" "DONE" "CANCELLED")))
+
+
+(setq org-agenda-files '("~/Documents/GTD/org-gtd-tasks.org"
+			 "~/Documents/Org/ANS2005.org"
+			 "~/Documents/Org/COP3502.org"
+			 "~/Documents/Org/System Administrator.org"
+			 "~/Documents/Org/Christianity.org"
+			 "~/Documents/Org/Work.org"
+			 "~/Documents/Org/IDS2935.org"))
+
+(setq org-capture-templates '(("t" "Todo [inbox]" entry
+                               (file+headline "~/Documents/GTD/inbox.org" "Tasks")
+                               "* TODO %i%?")
+                              ("T" "Tickler" entry
+                               (file+headline "~/Documents/GTD/tickler.org" "Tickler")
+                               "* %i%? \n %U")))
+
+(setq org-refile-targets '(("~/Documents/GTD/org-gtd-tasks.org" :maxlevel . 3)
+                           ("~/Documents/GTD/someday.org" :level . 1)
+                           ("~/Documents/GTD/tickler.org" :maxlevel . 2)))
+
+(use-package jinx
+  :config
+  (add-hook 'emacs-startup-hook #'global-jinx-mode))
+
+(defun momo/convert-md-to-org ()
+  (interactive)
+  (let ((input (buffer-file-name))
+        (output (concat (file-name-sans-extension (buffer-file-name)) ".org")))
+    (shell-command (format "pandoc -f markdown -t org -o %s %s" output input))
+    (find-file output)))
+
+(defun disable-meow-mode ()
+"Disable meow-mode in the current buffer and enable eat-char-mode as well."
+(meow-mode -1))
+
+(add-hook 'org-mode-hook 'visual-line-mode)
 
 (use-package geiser-guile)
-
-(use-package beframe
-  :config
-  (beframe-mode 1))
 
 (use-package corfu
   ;; Optional customizations
@@ -171,17 +275,29 @@
 (setq completion-cycle-threshold 3)
 (setq tab-always-indent 'complete)
 
-(use-package general
-  :ensure t)
+(use-package yasnippet
+  :config
+  (yas-global-mode 1))
 
-(defconst leader "C-c")
+(use-package yasnippet-snippets)
 
-(general-create-definer leader-def
-  :prefix leader)
+(use-package treesit-auto
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
 
-(leader-def
-  "b" 'bluetooth-list-devices)
-;; Enable vertico
+(use-package magit)
+
+(setq lsp-log-io t)
+
+(use-package lsp-ui)
+
+(use-package paredit
+  :config
+  (add-hook 'prog-mode-hook 'paredit-mode))
+
 (use-package vertico
   :init
   (vertico-mode)
@@ -266,12 +382,6 @@
   :config
   (vertico-posframe-mode 1))
 
-
-(use-package yasnippet
-  :config
-  (yas-global-mode 1))
-(use-package yasnippet-snippets)
-
 (use-package dirvish
   :config
   (dirvish-override-dired-mode)
@@ -281,17 +391,20 @@
 	    "l" 'dired-find-file)
   )
 
-(defun disable-meow-mode ()
-  (meow-global-mode -1))
+(use-package projectile)
 
-(defun enable-meow-mode ()
-  (meow-global-mode 1))
+(use-package pdf-tools)
+(add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
+
+(use-package nov)
+(add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
 
 (use-package eat
   :hook
   (eat-mode . disable-meow-mode)
-  (prog-mode . enable-meow-mode)
-  (text-mode . enable-meow-mode))
+  ;(prog-mode . enable-meow-mode)
+  ;(text-mode . enable-meow-mode)
+  )
 
 ;; For `eat-eshell-mode'.
 (add-hook 'eshell-load-hook #'eat-eshell-mode)
@@ -299,132 +412,6 @@
 ;; For `eat-eshell-visual-command-mode'.
 (add-hook 'eshell-load-hook #'eat-eshell-visual-command-mode)
 
-(use-package projectile)
-
-(use-package pdf-tools)
-
-(use-package org
-  :config
-  (general-define-key
-  "C-c d c" 'org-capture
-  "C-c d a" 'org-agenda))
-
-(use-package org-roam
-  :ensure t
-  :custom
-  (org-roam-directory (file-truename "/home/swilley/Documents/Roam"))
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n g" . org-roam-graph)
-         ("C-c n i" . org-roam-node-insert)
-         ("C-c n c" . org-roam-capture)
-         ;; Dailies
-         ("C-c n j" . org-roam-dailies-capture-today))
-  :config
-  ;; If you're using a vertical completion framework, you might want a more informative completion interface
-  (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
-  (org-roam-db-autosync-mode)
-  ;; If using org-roam-protocol
-  (require 'org-roam-protocol))
-
-;; Org-modern
-(use-package org-modern
-  :config
-  (setq
-   ;; Edit settings
-   org-auto-align-tags nil
-   org-tags-column 0
-   org-catch-invisible-edits 'show-and-error
-   org-special-ctrl-a/e t
-   org-insert-heading-respect-content t
-
-   ;; Org styling, hide markup etc.
-   org-hide-emphasis-markers t
-   org-pretty-entities t
-   org-ellipsis "…"
-
-   ;; Agenda styling
-   org-agenda-tags-column 0
-   org-agenda-block-separator ?─
-   org-agenda-time-grid
-   '((daily today require-timed)
-     (800 1000 1200 1400 1600 1800 2000)
-     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
-   org-agenda-current-time-string
-   "⭠ now ─────────────────────────────────────────────────")
-  (global-org-modern-mode))
-
-(setq org-todo-keywords
-      '((sequence "TODO" "NEXT" "LATER" "SCHEDULED" "PROJECT" "WAITING" "|" "DONE" "CANCELLED")))
-
-
-(setq org-agenda-files '("~/Documents/GTD/org-gtd-tasks.org"
-			 "~/Documents/Org/ANS2005.org"
-			 "~/Documents/Org/COP3502.org"
-			 "~/Documents/Org/System Administrator.org"
-			 "~/Documents/Org/Christianity.org"
-			 "~/Documents/Org/Work.org"
-			 "~/Documents/Org/IDS2935.org"))
-
-(setq org-capture-templates '(("t" "Todo [inbox]" entry
-                               (file+headline "~/Documents/GTD/inbox.org" "Tasks")
-                               "* TODO %i%?")
-                              ("T" "Tickler" entry
-                               (file+headline "~/Documents/GTD/tickler.org" "Tickler")
-                               "* %i%? \n %U")))
-
-(setq org-refile-targets '(("~/Documents/GTD/org-gtd-tasks.org" :maxlevel . 3)
-                           ("~/Documents/GTD/someday.org" :level . 1)
-                           ("~/Documents/GTD/tickler.org" :maxlevel . 2)))
-
-(use-package which-key
-  :config
-  (which-key-mode))
 (use-package guix)
 
-(use-package nov)
-
-(use-package paredit
-  :config
-  (add-hook 'prog-mode-hook 'paredit-mode))
-
-;; Automatically start "book" modes when needed
-(add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
-(add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
-
-;; Magit
-(use-package magit)
-
-;; Dashboard
-(use-package dashboard
-  :ensure t
-  :config
-  (dashboard-setup-startup-hook))
-
 (use-package bluetooth)
-
-(use-package treesit-auto
-  :custom
-  (treesit-auto-install 'prompt)
-  :config
-  (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("88267200889975d801f6c667128301af0bc183f3450c4b86138bfb23e8a78fb1" "88cb0f9c0c11dbb4c26a628d35eb9239d1cf580cfd28e332e654e7f58b4e721b" default)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-
-
-(use-package modus-themes
-  :config
-  (load-theme 'modus-vivendi-tinted))

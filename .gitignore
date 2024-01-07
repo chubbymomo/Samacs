@@ -16,3 +16,17 @@ nov-places
 projectile-bookmarks.eld
 projects
 recentf
+\#init.el\#
+.cache
+.lsp-session-v1
+eclipse.jdt.ls
+eln-cache
+eww-bookmarks
+init.el.backup
+request
+smudge
+tramp
+tree-sitter
+url
+webkit
+workspace
