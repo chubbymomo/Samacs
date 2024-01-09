@@ -272,6 +272,12 @@
   :init
   (global-corfu-mode))
 
+(general-define-key
+ :keymaps 'corfu-map
+
+ "C-j" 'corfu-next
+ "C-k" 'corfu-previous)
+
 (setq completion-cycle-threshold 3)
 (setq tab-always-indent 'complete)
 
